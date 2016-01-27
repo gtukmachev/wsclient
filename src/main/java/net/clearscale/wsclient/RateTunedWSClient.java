@@ -25,8 +25,7 @@ public class RateTunedWSClient {
     public static void main(String[] args) throws InterruptedException {
         rateIndexCounter.start();
 
-        //create 100 tasks
-        for (int i = 0; i < 20; i++) {
+        for (int i = 0; i < 100; i++) {
             RateLimitedGetTask getTask = new RateLimitedGetTask(URL, rateIndexCounter, stackOfTasks);
             //link task as last element
             stackOfTasks.add(getTask);

@@ -40,7 +40,8 @@ class RateIndexCounter {
     private synchronized void reset(long scheduledExecutionTimestamp) {
         long diff = scheduledExecutionTimestamp - lastResetTimestamp;
         boolean isStale = diff > A_SECOND;
-        if (!isStale) {
+        boolean isCatchUp = diff < 950;
+        if (!isCatchUp) {
             logger.info("---------- " + requestsNumber + " => 0 ---------- from last reset " + diff + " ms has gone");
             lastResetTimestamp = System.currentTimeMillis();
             requestsNumber = 0;
