@@ -7,8 +7,7 @@ import java.util.concurrent.Executors;
 /**
  * A client for REST WS.
  * <p/>
- * The main feature of the client is that a number of requests is limited by throughput rate index which is defined manually.
- * Rate index is measured in requests per seconds.
+ * The main feature of the client is that a number of requests is limited by throughput rate index which is hardcoded and equal 10 request per seconds.
  * This class is threadsafe.
  *
  * @author Yuriy Pankratyev
