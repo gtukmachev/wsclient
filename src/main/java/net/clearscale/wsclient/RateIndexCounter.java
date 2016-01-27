@@ -13,35 +13,38 @@ class RateIndexCounter {
 
     private static final Logger logger = Logger.getLogger(RateIndexCounter.class);
     private static final int DEFAULT_RATE = 10;
+    private static final int A_SECOND = 1000;
 
     private final int rate;
     private final Timer resetTimer = new Timer(true);
 
     //GuardedBy("this")
     private int requestsNumber;
-    /**
-     * timestamp of the current second
-     */
-    private long currentSecondTimestamp;
+    private long lastResetTimestamp;
 
     public RateIndexCounter() {
         this.rate = DEFAULT_RATE;
     }
 
     public void start() {
+        lastResetTimestamp = System.currentTimeMillis();
         TimerTask reset = new TimerTask() {
             @Override
             public void run() {
-                reset();
+                reset(this.scheduledExecutionTime());
             }
         };
-        resetTimer.schedule(reset, 0, 1000);
+        resetTimer.scheduleAtFixedRate(reset, 0, A_SECOND);
     }
 
-    private synchronized void reset() {
-        logger.info("---------- " + requestsNumber + " => 0----------");
-        requestsNumber = 0;
-        currentSecondTimestamp = System.currentTimeMillis();
+    private synchronized void reset(long scheduledExecutionTimestamp) {
+        long diff = scheduledExecutionTimestamp - lastResetTimestamp;
+        boolean isStale = diff > A_SECOND;
+        if (!isStale) {
+            logger.info("---------- " + requestsNumber + " => 0 ---------- from last reset " + diff + " ms has gone");
+            lastResetTimestamp = System.currentTimeMillis();
+            requestsNumber = 0;
+        }
     }
 
     public synchronized void inc() {
@@ -49,8 +52,11 @@ class RateIndexCounter {
     }
 
     public synchronized boolean canI() {
-        boolean isItStillSameSecond = System.currentTimeMillis() - currentSecondTimestamp < 1000;
-        return requestsNumber < rate && isItStillSameSecond;
+        return requestsNumber < rate && isSameSecond();
+    }
+
+    private boolean isSameSecond() {
+        return System.currentTimeMillis() - lastResetTimestamp < A_SECOND;
     }
 
     public synchronized int get() {

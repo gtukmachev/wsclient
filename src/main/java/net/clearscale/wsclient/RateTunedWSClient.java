@@ -26,15 +26,20 @@ public class RateTunedWSClient {
         rateIndexCounter.start();
 
         //create 100 tasks
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 20; i++) {
             RateLimitedGetTask getTask = new RateLimitedGetTask(URL, rateIndexCounter, stackOfTasks);
             //link task as last element
             stackOfTasks.add(getTask);
         }
 
-        while(!stackOfTasks.isEmpty()) {
-            RateLimitedGetTask task = stackOfTasks.pop();
-            requestExecutor.execute(task);
+        while(true) {
+            //it is check-then-act but only this thread pops from the stack
+            //so it can be considered as special thread confinement
+            if (!stackOfTasks.isEmpty()) {
+                RateLimitedGetTask task = stackOfTasks.pop();
+
+                requestExecutor.execute(task);
+            }
         }
 
 
